@@ -1,0 +1,67 @@
+﻿@page "/doctores"
+@rendermode InteractiveServer
+@inject IRepositorioDoctores _repositorio;
+@inject NavigationManager _navigation;
+
+<h3>Doctores</h3>
+
+@if (_doctores is null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else if (_doctores.Count == 0)
+{
+    <h2>No hay doctores registrados</h2>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Especialidad</th>
+                <th>Horario</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Doctor doctor in _doctores)
+            {
+                <tr>
+                    <td>@doctor.Nombre</td>
+                    <td>@doctor.Especialidad</td>
+                    <td>@doctor.Horario</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => Modificar(doctor.Id)">Editar</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(doctor)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a class="btn btn-success" href="doctores/nuevo">Agregar doctor</a>
+
+@code {
+    private List<Doctor>? _doctores;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _doctores = await _repositorio.GetAll();
+    }
+
+    private void Modificar(int id)
+    {
+        _navigation.NavigateTo($"/doctores/editar/{id}");
+    }
+
+    private async void Eliminar(Doctor doctor)
+    {
+        await _repositorio.Delete(doctor.Id);
+        _doctores!.Remove(doctor);
+        StateHasChanged();
+    }
+}

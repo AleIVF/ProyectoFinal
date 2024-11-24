@@ -1,0 +1,64 @@
+﻿@page "/citas"
+@rendermode InteractiveServer
+@inject IRepositorioCitas _repositorio;
+@inject NavigationManager _navigation;
+
+<PageTitle>Citas</PageTitle>
+<h3>Lista de Citas</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Motivo</th>
+            <th>Doctor</th>
+            <th>Paciente</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (_citas != null)
+        {
+            foreach (Cita cita in _citas)
+            {
+                <tr>
+                    <td>@cita.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@cita.Motivo</td>
+                    <td>@cita.Doctor?.Nombre</td>
+                    <td>@cita.Paciente?.Nombre</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditarCita(cita.Id)">Editar</button>
+                        <button class="btn btn-danger" @onclick="() => EliminarCita(cita.Id)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<button class="btn btn-success" @onclick="NuevaCita">Nueva Cita</button>
+
+@code {
+    private List<Cita>? _citas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _citas = await _repositorio.GetAll();
+    }
+
+    private void NuevaCita()
+    {
+        _navigation.NavigateTo("/citas/nueva");
+    }
+
+    private void EditarCita(int id)
+    {
+        _navigation.NavigateTo($"/citas/editar/{id}");
+    }
+
+    private async Task EliminarCita(int id)
+    {
+        await _repositorio.Delete(id);
+        _citas = await _repositorio.GetAll(); // Refrescar lista
+    }
+}

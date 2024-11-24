@@ -1,0 +1,77 @@
+﻿@page "/pacientes/nuevo"
+@page "/pacientes/editar/{Id:int}"
+@rendermode InteractiveServer
+@inject IRepositorioPacientes _repositorio;
+@inject NavigationManager _navigation;
+
+
+<PageTitle>Paciente</PageTitle>
+<h3>@_mensaje Paciente</h3>
+
+<EditForm Model="_paciente" FormName="FormPaciente" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <label for="txtNombre" class="col-2 col-form-label">Nombre</label>
+        <div class="col-10">
+            <InputText id="txtNombre" class="form-control" @bind-Value="_paciente.Nombre" />
+            <ValidationMessage For="@(()=>_paciente.Nombre)" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtTelefono" class="col-2 col-form-label">Teléfono</label>
+        <div class="col-10">
+            <InputText id="txtTelefono" class="form-control" @bind-Value="_paciente.Telefono" />
+            <ValidationMessage For="@(()=>_paciente.Telefono)" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtGenero" class="col-2 col-form-label">Género</label>
+        <div class="col-10">
+            <InputText id="txtGenero" class="form-control" @bind-Value="_paciente.Genero" />
+            <ValidationMessage For="@(()=>_paciente.Genero)" />
+        </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Guardar</button>
+    <button class="btn btn-danger" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+    private string _mensaje = "";
+    private Paciente? _paciente = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {
+            _paciente = await _repositorio.Get(Id);
+            _mensaje = "Modificar";
+
+        }
+        else
+        {
+            _mensaje = "Nuevo";
+
+        }
+    }
+
+    private async void Guardar()
+    {
+        if (Id > 0)
+        {
+            await _repositorio.Update(Id, _paciente);
+        }
+        else
+        {
+            await _repositorio.Add(_paciente!);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigation.NavigateTo("/pacientes");
+    }
+}

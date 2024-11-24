@@ -1,0 +1,95 @@
+﻿@page "/citas/nueva"
+@page "/citas/editar/{Id:int}"
+@rendermode InteractiveServer
+@inject IRepositorioCitas _repositorio;
+@inject IRepositorioDoctores _repositorioDoctores;
+@inject NavigationManager _navigation;
+
+<PageTitle>Cita</PageTitle>
+<h3>@_mensaje Cita</h3>
+
+<EditForm Model="_cita" FormName="FormCita"  OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="txtFecha" class="form-label">Fecha</label>
+        <InputDate id="txtFecha" class="form-control" @bind-Value="_cita.Fecha" />
+        <ValidationMessage For="@(() => _cita.Fecha)" />
+    </div>
+    <div class="mb-3">
+        <label for="txtMotivo" class="form-label">Motivo</label>
+        <InputText id="txtMotivo" class="form-control" @bind-Value="_cita.Motivo" />
+        <ValidationMessage For="@(() => _cita.Motivo)" />
+    </div>
+    <div class="mb-3">
+        <label for="ddlDoctor" class="form-label">Doctor</label>
+        <InputSelect id="ddlDoctor" class="form-control" @bind-Value="_cita.DoctorId">
+            <option value="">Seleccione un doctor</option>
+            @if (_doctores != null)
+            {
+                foreach (var doctor in _doctores)
+                {
+                    <option value="@doctor.Id">@doctor.Nombre</option>
+                }
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => _cita.DoctorId)" />
+    </div>
+    <div class="mb-3">
+        <label for="ddlPaciente" class="form-label">Paciente</label>
+        <InputSelect id="ddlPaciente" class="form-control" @bind-Value="_cita.PacienteId">
+            <option value="">Seleccione un paciente</option>
+            @if (_pacientes != null)
+            {
+                foreach (var paciente in _pacientes)
+                {
+                    <option value="@paciente.Id">@paciente.Nombre</option>
+                }
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => _cita.PacienteId)" />
+    </div>
+    <button class="btn btn-primary" type="submit">Guardar</button>
+    <button class="btn btn-danger" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter] 
+    public int Id { get; set; }
+    private string _mensaje = "";
+    private Cita _cita = new();
+    private List<Doctor>? _doctores;
+    private List<Paciente>? _pacientes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _doctores = await _repositorioDoctores.GetAll();
+
+        if (Id > 0)
+        {
+            _cita = await _repositorio.Get(Id) ?? new();
+            _mensaje = "Editar";
+        }
+        else
+        {
+            _mensaje = "Nueva";
+        }
+    }
+
+    private async void Guardar()
+    {
+        if (Id > 0)
+        {
+            await _repositorio.Update(Id, _cita);
+        }
+        else
+        {
+            await _repositorio.Add(_cita);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigation.NavigateTo("/citas");
+    }
+}
